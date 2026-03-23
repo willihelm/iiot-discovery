@@ -1,0 +1,107 @@
+{
+  "uid": "iiot-uns-overview",
+  "title": "IIoT UNS Overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "tags": ["iiot", "uns", "demo"],
+  "templating": {
+    "list": [
+      {
+        "name": "line",
+        "type": "query",
+        "label": "Line",
+        "hide": 0,
+        "datasource": {
+          "type": "influxdb",
+          "uid": "influx_iiot"
+        },
+        "query": "import \"influxdata/influxdb/schema\"\n\nschema.tagValues(\n  bucket: \"iiot\",\n  tag: \"line\",\n  predicate: (r) => r._measurement == \"telemetry\"\n)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": ".*"
+        }
+      },
+      {
+        "name": "asset",
+        "type": "query",
+        "label": "Asset",
+        "hide": 0,
+        "datasource": {
+          "type": "influxdb",
+          "uid": "influx_iiot"
+        },
+        "query": "import \"influxdata/influxdb/schema\"\n\nschema.tagValues(\n  bucket: \"iiot\",\n  tag: \"asset\",\n  predicate: (r) => r._measurement == \"telemetry\" and r.line =~ /${line}/\n)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": ".*"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Temperature (C)",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influx_iiot" },
+      "targets": [
+        {
+          "query": "from(bucket: \"iiot\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> filter(fn: (r) => r.tag == \"temperature\")\n  |> filter(fn: (r) => r.line =~ /${line}/ and r.asset =~ /${asset}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Speed (rpm)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influx_iiot" },
+      "targets": [
+        {
+          "query": "from(bucket: \"iiot\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> filter(fn: (r) => r.tag == \"speed_rpm\")\n  |> filter(fn: (r) => r.line =~ /${line}/ and r.asset =~ /${asset}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Reject rate (%)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influx_iiot" },
+      "targets": [
+        {
+          "query": "from(bucket: \"iiot\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> filter(fn: (r) => r.tag == \"reject_rate\")\n  |> filter(fn: (r) => r.line =~ /${line}/ and r.asset =~ /${asset}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Produced count (pcs)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "influxdb", "uid": "influx_iiot" },
+      "targets": [
+        {
+          "query": "from(bucket: \"iiot\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => r._field == \"value\")\n  |> filter(fn: (r) => r.tag == \"produced_count\")\n  |> filter(fn: (r) => r.line =~ /${line}/ and r.asset =~ /${asset}/)\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "annotations": { "list": [] }
+}
+
