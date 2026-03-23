@@ -6,8 +6,10 @@ This project starts a small, modern, **simulated IIoT infrastructure** via Docke
 - **Time-Series DB**: InfluxDB 2
 - **Visualization**: Grafana (provisioned)
 - **NodeJS Services**:
-  - `ingest`: subscribes to UNS-MQTT topics and writes to InfluxDB
+- `ingest`: subscribes to UNS-MQTT topics and writes to InfluxDB
+  - also decodes the repo's Sparkplug B example into a separate Influx measurement
   - `sim-line1`, `sim-line2`: send example values like from a production line
+  - `sim-sparkplug`: publishes a small Sparkplug B example (`NBIRTH`/`DBIRTH`/`DDATA`)
 
 The services are written in TypeScript and compiled to JavaScript before Node runs them in Docker.
 
@@ -73,6 +75,34 @@ Measurement: `telemetry`
 - `services/ingest`: MQTT subscribe `uns/v1/#` → Topic-Parsing → Influx write
 - `services/simulators/line1`: simulates `line-01` (multiple assets/tags)
 - `services/simulators/line2`: simulates `line-02` (multiple assets/tags)
+- `services/simulators/sparkplug`: publishes a Sparkplug B edge node + device example
+
+## Sparkplug B Example
+
+This repo now also includes a small **Sparkplug B example flow**. The simulator publishes Sparkplug topics with binary Protobuf payloads and sends:
+
+- `NBIRTH` for the edge node
+- `DBIRTH` for one example device
+- recurring `DDATA` telemetry updates
+- `DDEATH` during graceful shutdown
+- `NDEATH` as the MQTT last will
+
+Example topics:
+
+- `spBv1.0/acme-packaging/NBIRTH/line-01-edge`
+- `spBv1.0/acme-packaging/DBIRTH/line-01-edge/filler-01`
+- `spBv1.0/acme-packaging/DDATA/line-01-edge/filler-01`
+
+Environment variables for the example service:
+
+- `SPARKPLUG_GROUP_ID` (default: `acme-packaging`)
+- `SPARKPLUG_EDGE_NODE_ID` (default: `line-01-edge`)
+- `SPARKPLUG_DEVICE_ID` (default: `filler-01`)
+- `PUBLISH_INTERVAL_MS` (default: `1000`)
+
+The existing `ingest` service still handles the repo's **UNS JSON** format on `uns/v1/...`, and it now also subscribes to `spBv1.0/#`. For the Sparkplug path it decodes the subset used by this repo's example (`UInt64`, `Double`, `Boolean`, `String`) into the Influx measurement `sparkplug_telemetry`.
+
+The Grafana dashboard includes a new panel, **Sparkplug Device Metrics**, which graphs the numeric `DDATA` metrics for the demo device `filler-01`.
 
 ## UNS in Code
 
@@ -82,7 +112,7 @@ The topic convention is mapped centrally in `services/shared/uns.ts`:
 
 ## TypeScript Notes
 
-- Node.js is still the runtime for all three services.
+- Node.js is still the runtime for all services.
 - TypeScript adds static checking plus a build step with `tsc`.
 - Source files live in `src/*.ts` and the compiled JavaScript lands in `dist/`.
 - This repo keeps ESM mode (`"type": "module"`), so TypeScript imports use `.js` in import paths because those paths must match the emitted runtime files.

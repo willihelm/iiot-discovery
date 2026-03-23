@@ -98,6 +98,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  sim-sparkplug:
+    build:
+      context: .
+      dockerfile: services/simulators/sparkplug/Dockerfile
+    environment:
+      MQTT_URL: "${MQTT_URL:-mqtt://mosquitto:1883}"
+      SPARKPLUG_GROUP_ID: "${SPARKPLUG_GROUP_ID:-acme-packaging}"
+      SPARKPLUG_EDGE_NODE_ID: "${SPARKPLUG_EDGE_NODE_ID:-line-01-edge}"
+      SPARKPLUG_DEVICE_ID: "${SPARKPLUG_DEVICE_ID:-filler-01}"
+      PUBLISH_INTERVAL_MS: "${PUBLISH_INTERVAL_MS:-1000}"
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   mosquitto_data:
   influxdb_data:
