@@ -9,6 +9,8 @@ This project starts a small, modern, **simulated IIoT infrastructure** via Docke
   - `ingest`: subscribes to UNS-MQTT topics and writes to InfluxDB
   - `sim-line1`, `sim-line2`: send example values like from a production line
 
+The services are written in TypeScript and compiled to JavaScript before Node runs them in Docker.
+
 ## Quickstart
 
 1. Copy the example env file:
@@ -74,9 +76,16 @@ Measurement: `telemetry`
 
 ## UNS in Code
 
-The topic convention is mapped centrally in `services/shared/uns.js`:
+The topic convention is mapped centrally in `services/shared/uns.ts`:
 - `parseUnsTopic(topic)`: Topic → UNS segments (enterprise/site/area/line/…)
 - `buildUnsTopic(prefix, segments)`: Prefix + segments → Topic string
+
+## TypeScript Notes
+
+- Node.js is still the runtime for all three services.
+- TypeScript adds static checking plus a build step with `tsc`.
+- Source files live in `src/*.ts` and the compiled JavaScript lands in `dist/`.
+- This repo keeps ESM mode (`"type": "module"`), so TypeScript imports use `.js` in import paths because those paths must match the emitted runtime files.
 
 ## Troubleshooting
 

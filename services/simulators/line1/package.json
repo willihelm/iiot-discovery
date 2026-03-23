@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "src/index.js",
+  "main": "dist/simulators/line1/src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/simulators/line1/src/index.js"
   },
   "dependencies": {
     "mqtt": "^5.10.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
   }
 }
